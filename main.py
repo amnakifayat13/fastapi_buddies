@@ -2,9 +2,23 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from bson import ObjectId
-from cloudinary_config import upload_image_to_cloudinary
 from dotenv import load_dotenv
 import os
+import cloudinary
+import cloudinary.uploader
+
+
+load_dotenv()
+
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
+
+def upload_image_to_cloudinary(file):
+    result = cloudinary.uploader.upload(file.file)
+    return result["secure_url"]
 
 # Load environment variables
 load_dotenv()
