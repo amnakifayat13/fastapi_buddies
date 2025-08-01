@@ -173,3 +173,10 @@ async def update_deal(
 def delete_deal(deal_id: str):
     result = deals.delete_one({"_id": ObjectId(deal_id)})
     return {"deleted": result.deleted_count}
+
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
