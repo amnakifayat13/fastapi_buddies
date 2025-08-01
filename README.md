@@ -6,3 +6,5 @@
  5. uvicorn
 
 uv run uvicorn main:app --reload
+
+iwr https://fly.io/install.ps1 -useb | iex
