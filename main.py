@@ -189,6 +189,14 @@ def delete_deal(deal_id: str):
     return {"deleted": result.deleted_count}
 
 
+# receive orders
+
+@app.post("/orders")
+async def receive_order(order: dict):
+    print("New order received:", order)
+    return {"message": "Order received"}
+
+
 
 if __name__ == "__main__":
     import uvicorn
