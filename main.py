@@ -1,5 +1,6 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from pymongo import MongoClient
 from bson import ObjectId
 from dotenv import load_dotenv
@@ -8,6 +9,7 @@ import cloudinary
 import cloudinary.uploader
 
 
+# ========== LOAD ENV & CLOUDINARY ==========
 load_dotenv()
 
 cloudinary.config(
@@ -20,28 +22,28 @@ def upload_image_to_cloudinary(file):
     result = cloudinary.uploader.upload(file.file)
     return result["secure_url"]
 
-# Load environment variables
-load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
 
+# ========== FASTAPI APP ==========
 app = FastAPI()
 
-# Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000"],  # Change this to your frontend URL in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# MongoDB Connection
+# ========== DATABASE SETUP ==========
 client = MongoClient(MONGO_URI)
 db = client["menudb"]
 products = db["products"]
-deals = db["deals"] 
+deals = db["deals"]
+orders = db["orders"]  # NEW COLLECTION
 
-# Helper function to serialize
+
+# ========== SERIALIZER ==========
 def serialize_item(item):
     return {
         "_id": str(item["_id"]),
@@ -53,9 +55,7 @@ def serialize_item(item):
     }
 
 
-# ============ PRODUCTS ROUTES=============
-
-
+# ========== PRODUCTS ROUTES ==========
 @app.post("/products")
 async def add_product(
     name: str = Form(...),
@@ -121,9 +121,7 @@ def delete_product(product_id: str):
     return {"deleted": result.deleted_count}
 
 
-# ================ DEALS ROUTES (NEW)=============
-
-
+# ========== DEALS ROUTES ==========
 @app.post("/deals")
 async def add_deal(
     name: str = Form(...),
@@ -189,15 +187,33 @@ def delete_deal(deal_id: str):
     return {"deleted": result.deleted_count}
 
 
-# receive orders
+# ========== ORDER MODEL ==========
+from typing import List
 
+class OrderItem(BaseModel):
+    _id: str
+    name: str
+    price: str
+    category: str
+    description: str
+    image: str
+    quantity: int
+
+class Order(BaseModel):
+    items: List[OrderItem]
+
+
+# ========== ORDER ROUTE ==========
 @app.post("/orders")
-async def receive_order(order: dict):
-    print("New order received:", order)
-    return {"message": "Order received"}
+async def receive_order(order: Order):
+    try:
+        inserted = orders.insert_one(order.dict())
+        return {"message": "Order saved", "order_id": str(inserted.inserted_id)}
+    except Exception as e:
+        return {"error": str(e)}
+        
 
-
-
+# ========== START SERVER ==========
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
