@@ -206,10 +206,10 @@ class Order(BaseModel):
 
 
 # ========== ORDER ROUTE ==========
-app.post("/orders")
+@app.post("/orders")
 async def create_order(order: Order):
     try:
-        orders.insert_one(order.model_dump())  # ✅ updated line
+        orders.insert_one(order.model_dump())  
         return {"message": "Order submitted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
