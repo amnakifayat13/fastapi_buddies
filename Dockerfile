@@ -1,5 +1,5 @@
-# Base image (Python 3.9 slim for lightweight container)
-FROM python:3.13
+# ✅ Use stable Python 3.11 image
+FROM python:3.11-slim
 
 # Working directory set karo
 WORKDIR /app
