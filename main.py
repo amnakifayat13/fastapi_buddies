@@ -194,7 +194,7 @@ def delete_deal(deal_id: str):
 class OrderItem(BaseModel):
     id: str = Field(..., alias="_id")  # Accept _id from JSON but rename to id internally
     name: str
-    price: float
+    price: int
     category: str
     description: str
     image: str
