@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Field
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pymongo import MongoClient
@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import os
 import cloudinary
 import cloudinary.uploader
+from typing import List
 
 
 # ========== LOAD ENV & CLOUDINARY ==========
@@ -188,16 +189,20 @@ def delete_deal(deal_id: str):
 
 
 # ========== ORDER MODEL ==========
-from typing import List
+
 
 class OrderItem(BaseModel):
-    _id: str
+    id: str = Field(..., alias="_id")  # Accept _id from JSON but rename to id internally
     name: str
     price: str
     category: str
     description: str
     image: str
     quantity: int
+
+    class Config:
+        allow_population_by_field_name = True  # allow using "id" internally
+        arbitrary_types_allowed = True
 
 class Order(BaseModel):
     tableNumber: str
@@ -209,10 +214,11 @@ class Order(BaseModel):
 @app.post("/orders")
 async def create_order(order: Order):
     try:
-        orders.insert_one(order.model_dump())  
+        orders.insert_one(order.model_dump(by_alias=True))  
         return {"message": "Order submitted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
         
 
 # ========== START SERVER ==========
