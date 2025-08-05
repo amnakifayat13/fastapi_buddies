@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form, Request
+from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pymongo import MongoClient
@@ -200,17 +200,19 @@ class OrderItem(BaseModel):
     quantity: int
 
 class Order(BaseModel):
+    tableNumber: str
     items: List[OrderItem]
+    totalAmount: float
 
 
 # ========== ORDER ROUTE ==========
-@app.post("/orders")
-async def receive_order(order: Order):
+app.post("/orders")
+async def create_order(order: Order):
     try:
-        inserted = orders.insert_one(order.dict())
-        return {"message": "Order saved", "order_id": str(inserted.inserted_id)}
+        orders.insert_one(order.model_dump())  # ✅ updated line
+        return {"message": "Order submitted successfully"}
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
         
 
 # ========== START SERVER ==========
