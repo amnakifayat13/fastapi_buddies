@@ -4,3 +4,8 @@ pymongo
 python-dotenv
 cloudinary
 python-multipart
+pyttsx3
+openai-whisper
+openai-agents
+requests
+rapidfuzz
